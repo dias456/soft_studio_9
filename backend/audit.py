@@ -3,14 +3,15 @@ from datetime import datetime
 from threading import Lock
 from typing import Dict, List, Set
 
-from events import ReservationCreated
+from events import SeatAvailabilityChanged
 
 
 @dataclass(frozen=True)
 class AuditRecord:
     eventId: str
     eventType: str
-    reservationId: int
+    seatId: int
+    isAvailable: bool
     occurredAt: datetime
 
 
@@ -43,20 +44,21 @@ class InMemoryAuditRepository:
             return len(self._processed_event_ids)
 
 
-class ReservationCreatedAuditConsumer:
-    """Creates one useful audit entry for each unique reservation event."""
+class SeatAvailabilityChangedAuditConsumer:
+    """Creates one audit entry for each unique availability-change event."""
 
     def __init__(self, audit_repository):
         # type: (InMemoryAuditRepository) -> None
         self.audit_repository = audit_repository
 
     def handle(self, event):
-        # type: (ReservationCreated) -> None
+        # type: (SeatAvailabilityChanged) -> None
         self.audit_repository.save_once(
             AuditRecord(
                 eventId=event.eventId,
-                eventType="RESERVATION_CREATED",
-                reservationId=event.reservationId,
+                eventType="SEAT_AVAILABILITY_CHANGED",
+                seatId=event.seatId,
+                isAvailable=event.isAvailable,
                 occurredAt=event.occurredAt,
             )
         )

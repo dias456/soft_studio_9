@@ -5,16 +5,13 @@ from typing import Any, Callable, DefaultDict, List, Type
 
 
 @dataclass(frozen=True)
-class ReservationCreated:
-    """A completed business fact: a reservation was successfully saved."""
+class SeatAvailabilityChanged:
+    """A completed business fact: a seat's availability was changed."""
 
     eventId: str
     occurredAt: datetime
-    reservationId: int
-    studentId: int
     seatId: int
-    date: str
-    time: str
+    isAvailable: bool
 
 
 class InProcessEventBus:
