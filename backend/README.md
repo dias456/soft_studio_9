@@ -19,3 +19,15 @@ PostgreSQL
 
 ## Status
 Planning stage. Implementation will be added in a later milestone.
+
+## Event-driven contribution
+
+After a reservation is saved, `ReservationService` publishes the completed
+business fact `ReservationCreated` through a synchronous in-process event bus.
+`ReservationCreatedAuditConsumer` records an observable audit entry. Its audit
+repository atomically claims each unique `eventId`, so delivering the same event
+twice creates only one audit effect. Run the complete suite from this directory:
+
+```bash
+python -m pytest tests/ -v
+```

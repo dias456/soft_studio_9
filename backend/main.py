@@ -1,4 +1,6 @@
 
+from audit import InMemoryAuditRepository, ReservationCreatedAuditConsumer
+from events import InProcessEventBus, ReservationCreated
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from repository import ReservationRepository
@@ -13,7 +15,11 @@ seats = [
 ]
 
 repository = ReservationRepository()
-service = ReservationService(repository)
+event_bus = InProcessEventBus()
+audit_repository = InMemoryAuditRepository()
+audit_consumer = ReservationCreatedAuditConsumer(audit_repository)
+event_bus.subscribe(ReservationCreated, audit_consumer.handle)
+service = ReservationService(repository, event_bus)
 
 
 class Reservation(BaseModel):
@@ -50,3 +56,9 @@ def create_reservation(reservation: Reservation):
 @app.get("/reservations")
 def get_reservations():
     return {"reservations": repository.get_all()}
+
+
+@app.get("/audit-records")
+def get_audit_records():
+    """Observable output produced by the ReservationCreated consumer."""
+    return {"audit_records": audit_repository.get_all()}
